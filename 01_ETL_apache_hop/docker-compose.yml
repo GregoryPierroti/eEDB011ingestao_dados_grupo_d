@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  hop-web:
+    image: apache/hop-web:latest
+    container_name: hop-web
+    ports:
+      - "8080:8080"
+    user: hop
+    working_dir: /usr/local/tomcat
+    command: ["/bin/bash", "/tmp/run-web.sh"]
+    environment:
+      - PATH=/usr/local/tomcat/bin:/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      - JAVA_HOME=/opt/java/openjdk
+      - LANG=en_US.UTF-8
+      - LANGUAGE=en_US:en
+      - LC_ALL=en_US.UTF-8
+      - JAVA_VERSION=jdk-17.0.15+6
+      - CATALINA_HOME=/usr/local/tomcat
+      - TOMCAT_NATIVE_LIBDIR=/usr/local/tomcat/native-jni-lib
+      - LD_LIBRARY_PATH=/usr/local/tomcat/native-jni-lib
+      - TOMCAT_MAJOR=9
+      - TOMCAT_VERSION=9.0.105
+      - TOMCAT_SHA512=904f10378ee2c7c68529edfefcba50c77eb677aa4586cfac0603e44703b0278f71f683b0295774f3cdcb027229d146490ef2c8868d8c2b5a631cf3db61ff9956
+      - DEPLOYMENT_PATH=/usr/local/tomcat/webapps/ROOT
+      - HOP_AES_ENCODER_KEY=
+      - HOP_AUDIT_FOLDER=/usr/local/tomcat/webapps/ROOT/audit
+      - HOP_CONFIG_FOLDER=/usr/local/tomcat/webapps/ROOT/config
+      - HOP_LOG_LEVEL=Basic
+      - HOP_OPTIONS=-XX:+AggressiveHeap
+      - HOP_PASSWORD_ENCODER_PLUGIN=Hop
+      - HOP_PLUGIN_BASE_FOLDERS=/usr/local/tomcat/plugins
+      - HOP_SHARED_JDBC_FOLDERS=/usr/local/tomcat/jdbc-drivers
+      - HOP_WEB_THEME=light
+      - HOP_GUI_ZOOM_FACTOR=1.0
+      - HOP_PROJECT_FOLDER=
+      - HOP_PROJECT_CONFIG_FILE_NAME=project-config.json
+      - HOP_ENVIRONMENT_NAME=environment1
+      - HOP_ENVIRONMENT_CONFIG_FILE_NAME_PATHS=
+      - CATALINA_OPTS=${HOP_OPTIONS}   -DHOP_AES_ENCODER_KEY="${HOP_AES_ENCODER_KEY}"   -DHOP_AUDIT_FOLDER="${HOP_AUDIT_FOLDER}"   -DHOP_CONFIG_FOLDER="${HOP_CONFIG_FOLDER}"   -DHOP_LOG_LEVEL="${HOP_LOG_LEVEL}"   -DHOP_PASSWORD_ENCODER_PLUGIN="${HOP_PASSWORD_ENCODER_PLUGIN}"   -DHOP_PLUGIN_BASE_FOLDERS="${HOP_PLUGIN_BASE_FOLDERS}"   -DHOP_SHARED_JDBC_FOLDERS="${HOP_SHARED_JDBC_FOLDERS}"   -DHOP_WEB_THEME="${HOP_WEB_THEME}"   -DHOP_GUI_ZOOM_FACTOR="${HOP_GUI_ZOOM_FACTOR}"
+    volumes:
+      - ./Dados:/files
+    restart: "no"
+
