@@ -1,0 +1,7 @@
+pandas
+sqlalchemy
+psycopg2-binary
+boto3
+s3fs
+python-dotenv
+
