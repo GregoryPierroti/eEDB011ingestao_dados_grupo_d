@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+# Instalar Java e utilitários
+RUN apt-get update && apt-get install -y openjdk-17-jdk wget curl && apt-get clean
+
+# Variáveis de ambiente Java
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH=$JAVA_HOME/bin:$PATH
+
+# Instalar dependências Python
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Baixar driver JDBC do Postgres
+RUN mkdir -p /opt/spark/jars && \
+    wget https://jdbc.postgresql.org/download/postgresql-42.7.3.jar -P /opt/spark/jars/
+
+# Copiar código
+WORKDIR /app
+COPY src /app
+
+# Comando padrão mantém o container ativo
+CMD ["tail", "-f", "/dev/null"]
