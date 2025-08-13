@@ -1,0 +1,21 @@
+# dbt/Dockerfile
+FROM python:3.11-slim
+
+# Pacotes do sistema necessários para compilar dependências e conectar ao Postgres
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential git libpq-dev curl \
+  && rm -rf /var/lib/apt/lists/*
+
+# Atualiza pip e instala dbt para Postgres + sqlfluff com templater do dbt
+# (fixe versões se quiser reprodutibilidade)
+RUN pip install --no-cache-dir --upgrade pip \
+  && pip install --no-cache-dir \
+       dbt-postgres \
+       sqlfluff \
+       sqlfluff-templater-dbt
+
+# Qualquer utilitário útil (opcional)
+RUN pip install --no-cache-dir ipython
+
+# Usuário root é ok para desenvolvimento; ajuste se precisar
+WORKDIR /app
