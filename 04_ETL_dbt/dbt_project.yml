@@ -3,5 +3,6 @@ version: 1.0
 config-version: 2
 profile: my_postgres_profile
 model-paths: ["models"]
+seed-paths: ["dbt/project/seeds"] 
 target-path: "target"
 clean-targets: ["target", "dbt_packages"]

@@ -4,4 +4,9 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
+logs/
+*.log
+target/
+dbt_packages/
+*.dbt
+.venv/
