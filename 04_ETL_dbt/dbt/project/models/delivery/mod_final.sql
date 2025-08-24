@@ -62,7 +62,7 @@ join_br as (
         b.*,
         r.*
     from bancos b
-    inner join reclamacoes r on b.cnpj = r.cnpj_if
+    inner join reclamacoes r on cast(b.cnpj as text) = cast(r.cnpj_if as text)
 ),
 final as (
     select
