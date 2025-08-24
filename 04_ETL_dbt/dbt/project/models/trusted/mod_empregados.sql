@@ -6,6 +6,7 @@
     tags=['trusted']
 ) }}
 
+-- Pull through all fields, including nome_processed
 select *
 from {{ ref('int_empregados') }}
 {% if is_incremental() %}

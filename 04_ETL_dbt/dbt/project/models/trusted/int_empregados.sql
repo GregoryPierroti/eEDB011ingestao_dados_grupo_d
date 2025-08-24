@@ -43,6 +43,27 @@ with less_v2 as (
     {% endif %}
 
     {{ clean_text('nome') }}                            as nome,
+    nullif(
+      trim(
+        regexp_replace(
+          regexp_replace(
+            regexp_replace(
+              upper(coalesce({{ clean_text('nome') }}, '')),
+              '\\b(S[\\.\\s\\/]*A|BANCO|LTDA)\\b',
+              '',
+              'g'
+            ),
+            '[^A-Z0-9 ]',
+            ' ',
+            'g'
+          ),
+          '\\s+',
+          ' ',
+          'g'
+        )
+      ),
+      ''
+    )                                         as nome_processed,
     cast(match_percent as integer)                      as match_percent,
 
     data_atualizacao,
@@ -83,6 +104,27 @@ v2 as (
     {% endif %}
 
     {{ clean_text('nome') }}                            as nome,
+    nullif(
+      trim(
+        regexp_replace(
+          regexp_replace(
+            regexp_replace(
+              upper(coalesce({{ clean_text('nome') }}, '')),
+              '\\b(S[\\.\\s\\/]*A|BANCO|LTDA)\\b',
+              '',
+              'g'
+            ),
+            '[^A-Z0-9 ]',
+            ' ',
+            'g'
+          ),
+          '\\s+',
+          ' ',
+          'g'
+        )
+      ),
+      ''
+    )                                         as nome_processed,
     cast(match_percent as integer)                      as match_percent,
 
     data_atualizacao,
@@ -91,9 +133,63 @@ v2 as (
 ),
 
 unioned as (
-  select * from less_v2
+  select
+    employer_name,
+    reviews_count,
+    culture_count,
+    salaries_count,
+    benefits_count,
+    employer_website,
+    employer_headquarters,
+    employer_founded,
+    employer_industry,
+    employer_revenue,
+    url,
+    geral,
+    cultura_e_valores,
+    diversidade_e_inclusao,
+    qualidade_de_vida,
+    alta_lideranca,
+    remuneracao_e_beneficios,
+    oportunidades_de_carreira,
+    recomendam_para_outras_pessoas,
+    perspectiva_positiva_da_empresa,
+    segmento,
+    nome,
+    nome_processed,
+    match_percent,
+    data_atualizacao,
+    _source_table
+  from less_v2
   union all
-  select * from v2
+  select
+    employer_name,
+    reviews_count,
+    culture_count,
+    salaries_count,
+    benefits_count,
+    employer_website,
+    employer_headquarters,
+    employer_founded,
+    employer_industry,
+    employer_revenue,
+    url,
+    geral,
+    cultura_e_valores,
+    diversidade_e_inclusao,
+    qualidade_de_vida,
+    alta_lideranca,
+    remuneracao_e_beneficios,
+    oportunidades_de_carreira,
+    recomendam_para_outras_pessoas,
+    perspectiva_positiva_da_empresa,
+    segmento,
+    nome,
+    nome_processed,
+    match_percent,
+    data_atualizacao,
+    _source_table
+  from v2
 ),
 
 final as (
