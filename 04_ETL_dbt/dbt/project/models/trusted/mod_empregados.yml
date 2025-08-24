@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: mod_empregados
+    description: "Dados padronizados de empregadores"
+    columns:
+      - name: nome_processed
+        description: "Nome padronizado do empregador para junção."
