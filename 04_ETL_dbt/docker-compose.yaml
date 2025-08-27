@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pg
+    environment:
+      POSTGRES_DB: warehouse
+      POSTGRES_USER: dbt
+      POSTGRES_PASSWORD: dbt
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbt -d warehouse"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  dbt:
+    build:
+      context: ./dbt
+      dockerfile: Dockerfile
+    container_name: dbt
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # dbt vai ler este diretório para o profiles.yml
+      DBT_PROFILES_DIR: /root/.dbt
+      # variáveis úteis (opcional):
+      DBT_TARGET: dev
+    volumes:
+      - ./dbt/project:/app           # seu projeto dbt
+      - ./dbt/profiles:/root/.dbt    # onde ficará o profiles.yml
+      - ./dbt/sqlfluff:/root/.config/sqlfluff  # .sqlfluff e configs
+    working_dir: /app
+    # Mantém o contêiner vivo para você executar comandos interativos
+    command: ["bash", "-lc", "tail -f /dev/null"]
+
+volumes:
+  pg_data:
