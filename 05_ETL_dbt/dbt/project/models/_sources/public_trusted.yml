@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: public_trusted
+    database: postgres
+    schema: public_trusted
+    tables:
+      - name: mod_bancos
+      - name: mod_empregados
+      - name: mod_reclamacoes

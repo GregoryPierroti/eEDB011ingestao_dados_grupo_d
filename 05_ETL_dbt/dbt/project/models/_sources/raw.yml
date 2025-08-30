@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: reclamacoes
+    database: postgres  
+    schema: public  
+    tables:
+      - name: 2021_tri_01
+      - name: 2021_tri_02
+      - name: 2021_tri_03
+      - name: 2021_tri_04
+      - name: 2022_tri_01
+      - name: 2022_tri_03
+      - name: 2022_tri_04
+
+  - name: bancos
+    database: postgres  
+    schema: public
+    tables:
+      - name: EnquadramentoInicia_v2
+
+  - name: empregados
+    database: postgres  
+    schema: public
+    tables:
+      - name: glassdoor_consolidado_join_match_less_v2
+      - name: glassdoor_consolidado_join_match_v2
+  

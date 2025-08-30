@@ -1,0 +1,16 @@
+source:
+  type: dbt
+  serviceName: dbt_service
+  serviceConnection:
+    config:
+      type: Dbt
+      manifestPath: /app/target/manifest.json
+      catalogPath: /app/target/catalog.json
+      sourcesPath: /app/target/sources.json
+sink:
+  type: metadata-rest
+  config:
+    apiEndpoint: http://openmetadata:8585/api
+workflowConfig:
+  openMetadataServerConfig:
+    hostPort: http://openmetadata:8585/api
