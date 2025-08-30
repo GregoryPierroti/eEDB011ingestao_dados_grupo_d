@@ -1,0 +1,95 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pg
+    environment:
+      POSTGRES_DB: warehouse
+      POSTGRES_USER: dbt
+      POSTGRES_PASSWORD: dbt
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbt -d warehouse"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  dbt:
+    build:
+      context: ./dbt
+      dockerfile: Dockerfile
+    container_name: dbt
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # dbt vai ler este diretório para o profiles.yml
+      DBT_PROFILES_DIR: /root/.dbt
+      # variáveis úteis (opcional):
+      DBT_TARGET: dev
+    volumes:
+      - ./dbt/project:/app           # seu projeto dbt
+      - ./dbt/profiles:/root/.dbt    # onde ficará o profiles.yml
+      - ./dbt/sqlfluff:/root/.config/sqlfluff  # .sqlfluff e configs
+    working_dir: /app
+    # Mantém o contêiner vivo para você executar comandos interativos
+    command: ["bash", "-lc", "tail -f /dev/null"]
+
+  # Serviços de governança e linhagem
+  openmetadata_db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: openmetadata
+      MYSQL_USER: openmetadata
+      MYSQL_PASSWORD: openmetadata
+      MYSQL_DATABASE: openmetadata
+    volumes:
+      - openmetadata_db_data:/var/lib/mysql
+
+  openmetadata_es:
+    image: opensearchproject/opensearch:2.5.0
+    environment:
+      discovery.type: single-node
+      plugins.security.disabled: 'true'
+    volumes:
+      - openmetadata_es_data:/usr/share/opensearch/data
+
+  openmetadata:
+    image: openmetadata/server:1.3.0
+    depends_on:
+      openmetadata_db:
+        condition: service_started
+      openmetadata_es:
+        condition: service_started
+    ports:
+      - "8585:8585"
+
+  openmetadata_ingestion:
+    image: openmetadata/ingestion:1.3.0
+    depends_on:
+      openmetadata:
+        condition: service_started
+    volumes:
+      - ./openmetadata:/openmetadata
+    command: ["bash", "-lc", "metadata ingest -c /openmetadata/ingestion.yml"]
+
+  # Orquestração com Airflow + Cosmos
+  airflow:
+    image: apache/airflow:2.7.1-python3.10
+    depends_on:
+      dbt:
+        condition: service_started
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./dbt/project:/opt/airflow/dbt/project
+      - ./dbt/profiles:/opt/airflow/dbt/profiles
+    command: ["bash", "-lc", "pip install astronomer-cosmos && airflow standalone"]
+
+volumes:
+  pg_data:
+  openmetadata_db_data:
+  openmetadata_es_data:

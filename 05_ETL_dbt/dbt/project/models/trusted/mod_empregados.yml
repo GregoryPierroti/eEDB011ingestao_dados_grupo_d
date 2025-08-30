@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: mod_empregados
+    description: "Dados padronizados de empregadores"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+    columns:
+      - name: nome_processed
+        description: "Nome padronizado do empregador para junção."

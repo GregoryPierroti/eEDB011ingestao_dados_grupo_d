@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: mod_reclamacoes
+    description: "Tabela modelada de reclamações"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
