@@ -83,11 +83,13 @@ services:
         condition: service_started
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    ports:
+      - "8080:8080"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./dbt/project:/opt/airflow/dbt/project
       - ./dbt/profiles:/opt/airflow/dbt/profiles
-    command: ["bash", "-lc", "pip install astronomer-cosmos && airflow standalone"]
+    command: ["bash", "-lc", "pip install -q astronomer-cosmos 'dbt-postgres==1.7.*' && airflow standalone"]
 
 volumes:
   pg_data:
