@@ -2,7 +2,96 @@ version: 2
 
 models:
   - name: mod_reclamacoes
-    description: "Tabela modelada de reclamações"
-    tests:
-      - dbt_expectations.expect_table_row_count_to_be_between:
-          min_value: 1
+    description: "Modelo trusted de reclamações"
+    columns:
+      - name: ano
+        description: "Ano da referência"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+
+      - name: trimestre
+        description: "Trimestre da referência"
+        tests:
+          - not_null
+
+      - name: categoria
+        description: "Categoria da instituição"
+        tests:
+          - not_null
+
+      - name: tipo
+        description: "Tipo da instituição"
+        tests:
+          - not_null
+
+      - name: cnpj_if
+        description: "CNPJ da instituição financeira"
+
+      - name: instituicao_financeira
+        description: "Nome da instituição financeira"
+        tests:
+          - not_null
+
+      - name: indice
+        description: "Índice de reclamações"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: quantidade_de_reclamacoes_reguladas_procedentes
+        description: "Quantidade de reclamações reguladas procedentes"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: quantidade_de_reclamacoes_reguladas_outras
+        description: "Quantidade de reclamações reguladas outras"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: quantidade_de_reclamacoes_nao_reguladas
+        description: "Quantidade de reclamações não reguladas"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: quantidade_total_de_reclamacoes
+        description: "Quantidade total de reclamações"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: quantidade_total_de_clientes_ccs_e_scr
+        description: "Quantidade total de clientes CCS e SCR"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: quantidade_de_clientes_ccs
+        description: "Quantidade de clientes CCS"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: quantidade_de_clientes_scr
+        description: "Quantidade de clientes SCR"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0

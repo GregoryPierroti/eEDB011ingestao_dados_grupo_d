@@ -1,14 +1,13 @@
-# dbt/profiles/profiles.yml
 my_postgres_profile:
   target: dev
   outputs:
     dev:
       type: postgres
-      host: postgres        # nome do serviço no docker-compose
+      host: postgres   # <-- altere aqui
       user: dbt
       password: dbt
       port: 5432
-      dbname: warehouse
-      schema: analytics     # schema default para o dbt (ajuste como quiser)
+      dbname: postgres
+      schema: public
       threads: 4
       keepalives_idle: 0
