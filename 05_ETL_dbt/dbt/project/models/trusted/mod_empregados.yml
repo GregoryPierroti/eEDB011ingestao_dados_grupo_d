@@ -1,0 +1,132 @@
+version: 2
+
+models:
+  - name: mod_empregados
+    description: "Modelo trusted de empregados/empregadores do Glassdoor"
+    columns:
+      - name: employer_name
+        description: "Nome do empregador"
+        tests:
+          - not_null
+      - name: reviews_count
+        description: "Quantidade de reviews"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: culture_count
+        description: "Quantidade de avaliações de cultura"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: salaries_count
+        description: "Quantidade de salários"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: benefits_count
+        description: "Quantidade de benefícios"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: employer_website
+        description: "Site do empregador"
+        tests:
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^https?://'
+      - name: employer_headquarters
+        description: "Sede do empregador"
+      - name: employer_founded
+        description: "Ano de fundação"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1500
+              max_value: 2100
+      - name: employer_industry
+        description: "Indústria"
+      - name: employer_revenue
+        description: "Receita do empregador"
+      - name: url
+        description: "URL do empregador"
+        tests:
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^https?://'
+      - name: geral
+        description: "Nota geral"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: cultura_e_valores
+        description: "Nota de cultura e valores"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: diversidade_e_inclusao
+        description: "Nota de diversidade e inclusão"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: qualidade_de_vida
+        description: "Nota de qualidade de vida"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: alta_lideranca
+        description: "Nota de alta liderança"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: remuneracao_e_beneficios
+        description: "Nota de remuneração e benefícios"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: oportunidades_de_carreira
+        description: "Nota de oportunidades de carreira"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: recomendam_para_outras_pessoas
+        description: "Percentual de recomendação"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+      - name: perspectiva_positiva_da_empresa
+        description: "Percentual de perspectiva positiva"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+      - name: segmento
+        description: "Segmento do banco"
+        tests:
+          - accepted_values:
+              values: ['S1', 'S2', 'S3', 'S4', 'S5']
+      - name: nome
+        description: "Nome do banco"
+        tests:
+          - not_null
+      - name: match_percent
+        description: "Percentual de match"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100

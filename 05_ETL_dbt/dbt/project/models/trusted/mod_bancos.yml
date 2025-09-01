@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: mod_bancos
+    description: "Modelo trusted de bancos, baseado nos dados de referência"
+    columns:
+      - name: segmento
+        description: "Segmento do banco"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['S1', 'S2', 'S3', 'S4', 'S5']
+      - name: cnpj
+        description: "CNPJ do banco"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^\d+$'
+      - name: nome
+        description: "Nome do banco"
+        tests:
+          - not_null
+       
+
+

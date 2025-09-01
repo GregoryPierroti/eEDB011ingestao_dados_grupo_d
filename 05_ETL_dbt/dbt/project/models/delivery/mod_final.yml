@@ -1,0 +1,230 @@
+version: 2
+
+models:
+  - name: mod_final
+    description: "Tabela que unifica bancos, reclamações e dados de empregados."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+    columns:
+      # Campos de bancos
+      - name: cnpj
+        description: "Identificador do banco."
+        tests:
+          - not_null
+      - name: segmento
+        description: "Segmento do banco."
+      - name: nome
+        description: "Nome do banco."
+      - name: nome_processed
+        description: "Nome padronizado do banco para junção."
+        tests:
+          - not_null
+
+      # Campos de reclamações
+      - name: ano
+        description: "Ano de referência das reclamações."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: trimestre
+        description: "Trimestre de referência das reclamações."
+        tests:
+          - not_null
+      - name: categoria
+        description: "Categoria da reclamação."
+        tests:
+          - not_null
+      - name: tipo
+        description: "Tipo da reclamação."
+        tests:
+          - not_null
+      - name: cnpj_if
+        description: "CNPJ utilizado na base de reclamações."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 99999999999999
+      - name: instituicao_financeira
+        description: "Nome da instituição financeira nas reclamações."
+        tests:
+          - not_null
+      - name: indice
+        description: "Índice de reclamações."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: quantidade_de_reclamacoes_reguladas_procedentes
+        description: "Reclamações reguladas procedentes."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: quantidade_de_reclamacoes_reguladas_outras
+        description: "Outras reclamações reguladas."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: quantidade_de_reclamacoes_nao_reguladas
+        description: "Reclamações não reguladas."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: quantidade_total_de_reclamacoes
+        description: "Quantidade total de reclamações registradas."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: quantidade_total_de_clientes_ccs_e_scr
+        description: "Total de clientes nas bases CCS e SCR."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: quantidade_de_clientes_ccs
+        description: "Quantidade de clientes na base CCS."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: quantidade_de_clientes_scr
+        description: "Quantidade de clientes na base SCR."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      # Campos de empregados
+      - name: nome_processed_empregado
+        description: "Nome padronizado do empregado para junção."
+        tests:
+          - not_null
+      - name: employer_sk
+        description: "Identificador do empregador."
+      - name: employer_name
+        description: "Nome da empresa na base de empregados."
+      - name: reviews_count
+        description: "Quantidade de avaliações."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: culture_count
+        description: "Quantidade de avaliações de cultura."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: salaries_count
+        description: "Quantidade de salários informados."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: benefits_count
+        description: "Quantidade de avaliações de benefícios."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: employer_website
+        description: "Site do empregador."
+      - name: employer_headquarters
+        description: "Sede do empregador."
+      - name: employer_founded
+        description: "Ano de fundação do empregador."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: employer_industry
+        description: "Indústria do empregador."
+      - name: employer_revenue
+        description: "Receita do empregador."
+      - name: url
+        description: "URL da página do empregador."
+      - name: geral
+        description: "Nota geral."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: cultura_e_valores
+        description: "Nota de cultura e valores."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: diversidade_e_inclusao
+        description: "Nota de diversidade e inclusão."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: qualidade_de_vida
+        description: "Nota de qualidade de vida."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: alta_lideranca
+        description: "Nota de alta liderança."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: remuneracao_e_beneficios
+        description: "Nota de remuneração e benefícios."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: oportunidades_de_carreira
+        description: "Nota de oportunidades de carreira."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+      - name: recomendam_para_outras_pessoas
+        description: "Percentual que recomenda para outras pessoas."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+      - name: perspectiva_positiva_da_empresa
+        description: "Percentual de perspectiva positiva da empresa."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+      - name: segmento_empregado
+        description: "Segmento da empresa na base de empregados."
+      - name: match_percent
+        description: "Percentual de correspondência do nome."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+      - name: nome_empregado
+        description: "Nome original do empregador."

@@ -1,0 +1,12 @@
+name: my_project
+version: 1.0
+config-version: 2
+profile: my_postgres_profile
+
+model-paths: ["models"]
+seed-paths:  ["seeds"]
+
+target-path: "{{ env_var('DBT_TARGET_PATH', 'target') }}"
+packages-install-path: "{{ env_var('DBT_PACKAGES_INSTALL_PATH', 'dbt_packages') }}"
+clean-targets: ["target", "dbt_packages"]
+macro-paths: ["macros"]
