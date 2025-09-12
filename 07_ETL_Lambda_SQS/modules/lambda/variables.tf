@@ -33,3 +33,29 @@ variable "lambda_environment" {
   type        = map(string)
   default     = {}
 }
+
+variable "raw_bucket_arn" {
+  description = "ARN of the RAW S3 bucket"
+  type        = string
+}
+
+variable "trusted_bucket_arn" {
+  description = "ARN of the Trusted S3 bucket"
+  type        = string
+}
+
+variable "delivery_bucket_arn" {
+  description = "ARN of the Delivery S3 bucket"
+  type        = string
+}
+
+variable "sqs_queue_arn" {
+  description = "ARN of the SQS queue"
+  type        = string
+}
+
+variable "tags" {
+  description = "Tags to apply to Lambda resources"
+  type        = map(string)
+  default     = {}
+}
