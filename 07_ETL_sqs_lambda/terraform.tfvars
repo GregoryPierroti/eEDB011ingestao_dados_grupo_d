@@ -9,7 +9,8 @@ lambda_zip_path = "./lambda_function.zip"
 lambda_batch_size = 10
 
 # NEW: CodePipeline variables
-use_codecommit = false
+use_codecommit = true
+codecommit_repository_name = "etl-atividade7-pipeline-repo"
 github_owner = "your-github-username"
 github_repo = "your-repository-name"
 source_branch = "main"
