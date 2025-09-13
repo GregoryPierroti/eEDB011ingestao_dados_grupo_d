@@ -38,19 +38,3 @@ output "pipeline_endpoints" {
     lambda_function_name    = module.lambda.lambda_function_name
   }
 }
-
-# CodePipeline outputs (conditional)
-output "codepipeline_name" {
-  description = "Name of the CodePipeline (if enabled)"
-  value       = var.enable_codepipeline ? module.codepipeline[0].pipeline_name : null
-}
-
-output "codecommit_repository_url" {
-  description = "CodeCommit repository clone URL (if using CodeCommit)"
-  value       = var.enable_codepipeline && var.use_codecommit ? module.codepipeline[0].codecommit_clone_url_http : null
-}
-
-output "terraform_state_bucket" {
-  description = "Terraform state bucket (if CodePipeline enabled)"
-  value       = var.enable_codepipeline ? module.codepipeline[0].terraform_state_bucket : null
-}
