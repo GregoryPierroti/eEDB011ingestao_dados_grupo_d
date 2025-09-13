@@ -77,3 +77,4 @@ resource "aws_lambda_event_source_mapping" "sqs_trigger" {
   function_name    = module.lambda.lambda_function_arn
   batch_size       = var.lambda_batch_size
 }
+

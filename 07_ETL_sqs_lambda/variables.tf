@@ -101,3 +101,9 @@ variable "run_deployment_test" {
   type        = bool
   default     = true
 }
+
+variable "enable_codepipeline" {
+  description = "Enable CodePipeline for CI/CD deployment"
+  type        = bool
+  default     = false
+}
