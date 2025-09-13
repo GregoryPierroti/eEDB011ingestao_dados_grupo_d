@@ -1,0 +1,151 @@
+version: 0.2
+
+# AWS CodeBuild buildspec for ETL Pipeline Deployment
+# Handles Terraform deployment with proper Lambda packaging
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo "Installing dependencies..."
+      - curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+      - apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+      - apt-get update && apt-get install terraform
+      - terraform --version
+      - python3 --version
+      - pip3 --version
+
+  pre_build:
+    commands:
+      - echo "Pre-build phase started on `date`"
+      - echo "Validating repository structure..."
+      
+      # Fix filename typos if they exist
+      - |
+        if [ -f "lambda_function/requirments.txt" ] && [ ! -f "lambda_function/requirements.txt" ]; then
+          echo "Fixing requirements.txt filename typo"
+          mv lambda_function/requirments.txt lambda_function/requirements.txt
+        fi
+      
+      - |
+        if [ -f "teraform.tfvars" ] && [ ! -f "terraform.tfvars" ]; then
+          echo "Fixing terraform.tfvars filename typo"
+          mv teraform.tfvars terraform.tfvars
+        fi
+      
+      # Validate required files exist
+      - test -f lambda_function/lambda_function.py || { echo "Lambda function file missing"; exit 1; }
+      - test -f lambda_function/requirements.txt || { echo "Requirements file missing"; exit 1; }
+      - test -f main.tf || { echo "Main Terraform file missing"; exit 1; }
+      - test -f terraform.tfvars || { echo "Terraform variables file missing"; exit 1; }
+      
+      # Create Lambda deployment package
+      - echo "Creating Lambda deployment package..."
+      - mkdir -p /tmp/lambda_package
+      - cp lambda_function/lambda_function.py /tmp/lambda_package/
+      - cp lambda_function/requirements.txt /tmp/lambda_package/
+      - cd /tmp/lambda_package
+      - pip3 install -r requirements.txt -t . --no-deps --quiet
+      - zip -r lambda_function.zip . -x "*.pyc" "__pycache__/*" "*.dist-info/*" > /dev/null
+      - mv lambda_function.zip $CODEBUILD_SRC_DIR/
+      - cd $CODEBUILD_SRC_DIR
+      - ls -la lambda_function.zip
+      - echo "Lambda package created successfully"
+
+  build:
+    commands:
+      - echo "Build phase started on `date`"
+      - echo "Initializing Terraform..."
+      
+      # Configure Terraform backend (if using remote state)
+      - |
+        if [ ! -z "$TF_STATE_BUCKET" ]; then
+          cat > backend.tf << EOF
+        terraform {
+          backend "s3" {
+            bucket = "$TF_STATE_BUCKET"
+            key    = "$TF_STATE_KEY"
+            region = "$AWS_DEFAULT_REGION"
+            dynamodb_table = "$TF_STATE_DYNAMODB_TABLE"
+            encrypt = true
+          }
+        }
+        EOF
+          echo "Remote state backend configured"
+        fi
+      
+      # Initialize Terraform
+      - terraform init -no-color
+      
+      # Validate Terraform configuration
+      - echo "Validating Terraform configuration..."
+      - terraform validate -no-color
+      
+      # Plan Terraform deployment
+      - echo "Planning Terraform deployment..."
+      - terraform plan -no-color -out=tfplan -var-file=terraform.tfvars
+      
+      # Apply Terraform (in production, you might want a manual approval step)
+      - echo "Applying Terraform deployment..."
+      - terraform apply -no-color -auto-approve tfplan
+      
+      # Show outputs
+      - echo "Terraform deployment completed. Outputs:"
+      - terraform output -no-color -json > terraform_outputs.json
+      - cat terraform_outputs.json
+
+  post_build:
+    commands:
+      - echo "Post-build phase started on `date`"
+      
+      # Test deployment by uploading a sample file (if enabled)
+      - |
+        if [ "$RUN_DEPLOYMENT_TEST" = "true" ]; then
+          echo "Running deployment test..."
+          
+          # Get RAW bucket name from Terraform output
+          RAW_BUCKET=$(terraform output -raw raw_bucket_name 2>/dev/null || echo "")
+          
+          if [ ! -z "$RAW_BUCKET" ]; then
+            # Create test file
+            cat > test_file.csv << EOF
+        id,name,amount,date,category
+        1,Test Transaction,100.50,2024-01-15,Sales
+        2,Test Purchase,75.25,2024-01-16,Marketing
+        EOF
+            
+            # Upload test file
+            aws s3 cp test_file.csv s3://$RAW_BUCKET/pipeline_test_$(date +%Y%m%d_%H%M%S).csv
+            echo "Test file uploaded successfully"
+            
+            # Wait a bit for processing
+            sleep 30
+            
+            # Check if processing worked
+            TRUSTED_BUCKET=$(terraform output -raw trusted_bucket_name 2>/dev/null || echo "")
+            if [ ! -z "$TRUSTED_BUCKET" ]; then
+              PROCESSED_FILES=$(aws s3 ls s3://$TRUSTED_BUCKET/ --recursive | wc -l)
+              echo "Found $PROCESSED_FILES processed files in TRUSTED bucket"
+            fi
+          else
+            echo "Could not retrieve bucket names for testing"
+          fi
+        else
+          echo "Deployment testing skipped (set RUN_DEPLOYMENT_TEST=true to enable)"
+        fi
+      
+      # Clean up
+      - rm -f tfplan test_file.csv
+      
+      - echo "Build completed on `date`"
+
+artifacts:
+  files:
+    - terraform_outputs.json
+    - '**/*'
+  base-directory: .
+
+cache:
+  paths:
+    - '/root/.terraform/**/*'

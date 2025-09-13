@@ -55,3 +55,49 @@ variable "common_tags" {
     ManagedBy   = "Terraform"
   }
 }
+
+# Additional variables for CodePipeline deployment
+# Add these to your existing variables.tf file
+
+variable "use_codecommit" {
+  description = "Use AWS CodeCommit as source repository (false for GitHub)"
+  type        = bool
+  default     = false
+}
+
+variable "github_owner" {
+  description = "GitHub repository owner (required if use_codecommit = false)"
+  type        = string
+  default     = ""
+}
+
+variable "github_repo" {
+  description = "GitHub repository name (required if use_codecommit = false)"
+  type        = string
+  default     = ""
+}
+
+variable "github_token" {
+  description = "GitHub personal access token (required if use_codecommit = false)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "source_branch" {
+  description = "Source branch for the pipeline"
+  type        = string
+  default     = "main"
+}
+
+variable "require_manual_approval" {
+  description = "Require manual approval before deployment"
+  type        = bool
+  default     = true
+}
+
+variable "run_deployment_test" {
+  description = "Run deployment test after successful deployment"
+  type        = bool
+  default     = true
+}
