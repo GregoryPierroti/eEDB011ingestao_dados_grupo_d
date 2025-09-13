@@ -52,7 +52,7 @@ variable "run_deployment_test" {
   default     = true
 }
 
-variable "tags" {
+variable "common_tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
   default     = {}

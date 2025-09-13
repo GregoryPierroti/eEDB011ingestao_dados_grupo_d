@@ -12,9 +12,7 @@ lambda_batch_size = 10
 enable_codepipeline = true
 use_codecommit = true
 codecommit_repository_name = "etl-atividade7-pipeline-repo"
-github_owner = "your-github-username"
-github_repo = "your-repository-name"
-source_branch = "main"
+source_branch = "master"
 require_manual_approval = true
 run_deployment_test = true
 
