@@ -9,3 +9,15 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "raw_bucket_arn" {
+  description = "ARN of the RAW S3 bucket that will send messages"
+  type        = string
+  default     = null
+}
+
+variable "bucket_prefix" {
+  description = "Prefix for S3 bucket names (fallback for ARN)"
+  type        = string
+  default     = "etl-pipeline"
+}

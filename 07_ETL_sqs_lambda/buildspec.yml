@@ -23,15 +23,15 @@ phases:
       
       # Fix filename typos if they exist
       - |
-        if [ -f "lambda_function/requirments.txt" ] && [ ! -f "lambda_function/requirements.txt" ]; then
+        if [ -f "lambda_function/requirements.txt" ] && [ ! -f "lambda_function/requirements.txt" ]; then
           echo "Fixing requirements.txt filename typo"
-          mv lambda_function/requirments.txt lambda_function/requirements.txt
+          mv lambda_function/requirements.txt lambda_function/requirements.txt
         fi
       
       - |
-        if [ -f "teraform.tfvars" ] && [ ! -f "terraform.tfvars" ]; then
+        if [ -f "terraform.tfvars" ] && [ ! -f "terraform.tfvars" ]; then
           echo "Fixing terraform.tfvars filename typo"
-          mv teraform.tfvars terraform.tfvars
+          mv terraform.tfvars terraform.tfvars
         fi
       
       # Validate required files exist

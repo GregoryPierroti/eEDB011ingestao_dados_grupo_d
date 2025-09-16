@@ -87,9 +87,13 @@ resource "aws_s3_bucket_lifecycle_configuration" "raw_lifecycle" {
     id     = "raw_data_lifecycle"
     status = "Enabled"
 
+    filter {
+      prefix = ""
+    }
+
     transition {
       days          = 30
-      storage_class = "STANDARD_INFREQUENT_ACCESS"
+      storage_class = "STANDARD_IA"
     }
 
     transition {
@@ -110,9 +114,13 @@ resource "aws_s3_bucket_lifecycle_configuration" "trusted_lifecycle" {
     id     = "trusted_data_lifecycle"
     status = "Enabled"
 
+    filter {
+      prefix = ""
+    }
+
     transition {
       days          = 60
-      storage_class = "STANDARD_INFREQUENT_ACCESS"
+      storage_class = "STANDARD_IA"
     }
 
     transition {

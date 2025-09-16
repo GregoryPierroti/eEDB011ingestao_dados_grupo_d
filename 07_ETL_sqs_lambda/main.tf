@@ -27,6 +27,8 @@ module "sqs" {
   source = "./modules/sqs"
   
   queue_name_prefix = var.queue_name_prefix
+  raw_bucket_arn    = module.s3.raw_bucket_arn  # Add this line
+  bucket_prefix     = var.bucket_prefix          # Add this line
   
   tags = var.common_tags
 }
@@ -59,7 +61,7 @@ module "lambda" {
   tags = var.common_tags
 }
 
-# Event trigger for S3 to SQS
+# Fixed S3 Bucket Notification with proper dependencies
 resource "aws_s3_bucket_notification" "raw_bucket_notification" {
   bucket = module.s3.raw_bucket_name
 
@@ -68,7 +70,10 @@ resource "aws_s3_bucket_notification" "raw_bucket_notification" {
     events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [module.sqs.queue_policy]
+  # Critical: Ensure SQS policy is created before notification
+  depends_on = [
+    module.sqs.queue_policy
+  ]
 }
 
 # Event source mapping for SQS to Lambda

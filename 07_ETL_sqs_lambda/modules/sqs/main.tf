@@ -1,3 +1,5 @@
+# Updated modules/sqs/main.tf with bucket-specific policy
+
 # Main SQS Queue for ETL processing
 resource "aws_sqs_queue" "etl_queue" {
   name                      = "${var.queue_name_prefix}-queue"
@@ -6,9 +8,6 @@ resource "aws_sqs_queue" "etl_queue" {
   message_retention_seconds = 1209600  # 14 days
   receive_wait_time_seconds = 10       # Long polling
   visibility_timeout_seconds = 300     # 5 minutes
-
-  # Enable encryption
-  kms_master_key_id = "alias/aws/sqs"
 
   # Redrive policy - send failed messages to DLQ after 3 attempts
   redrive_policy = jsonencode({
@@ -27,16 +26,16 @@ resource "aws_sqs_queue" "etl_dlq" {
   name                      = "${var.queue_name_prefix}-dlq"
   message_retention_seconds = 1209600  # 14 days
 
-  # Enable encryption
-  kms_master_key_id = "alias/aws/sqs"
-
   tags = merge(var.tags, {
     Purpose = "ETL Dead Letter Queue"
     Type    = "DLQ"
   })
 }
 
-# Queue policy to allow S3 to send messages
+# Get current AWS account ID
+data "aws_caller_identity" "current" {}
+
+# Queue policy to allow S3 to send messages - BUCKET SPECIFIC VERSION
 resource "aws_sqs_queue_policy" "etl_queue_policy" {
   queue_url = aws_sqs_queue.etl_queue.id
 
@@ -55,11 +54,11 @@ resource "aws_sqs_queue_policy" "etl_queue_policy" {
           StringEquals = {
             "aws:SourceAccount" = data.aws_caller_identity.current.account_id
           }
+          ArnLike = {
+            "aws:SourceArn" = var.raw_bucket_arn != null ? var.raw_bucket_arn : "arn:aws:s3:::${var.bucket_prefix}*"
+          }
         }
       }
     ]
   })
 }
-
-# Get current AWS account ID
-data "aws_caller_identity" "current" {}
