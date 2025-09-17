@@ -1,0 +1,193 @@
+
+
+services:
+  # ---------- KAFKA (KRaft) ----------
+  kafka:
+    image: bitnami/kafka:3.8
+    container_name: kafka
+    ports:
+      - "29092:29092"
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093          # <— ESTA LINHA
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_HOST://:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=1
+    volumes:
+      - kafka_data:/bitnami/kafka
+    networks: [streamnet]
+
+
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on: [kafka]
+    ports: ["8083:8080"]
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+    networks: [streamnet]
+
+  # ---------- MINIO (S3) ----------
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio12345
+    ports:
+      - "9000:9000"  # S3 API
+      - "9001:9001"  # Console UI
+    volumes:
+      - minio_data:/data
+    networks: [streamnet]
+
+  mc:
+    image: minio/mc:latest
+    container_name: minio-mc
+    depends_on: [minio]
+    entrypoint: ["/bin/sh","-c"]
+    command: >
+      "mc alias set local http://minio:9000 minio minio12345 &&
+       mc mb -p local/datalake || true &&
+       mc policy set public local/datalake || true &&
+       sleep 3600"
+    networks: [streamnet]
+
+  # ---------- POSTGRES ----------
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=dw
+      - POSTGRES_USER=dwuser
+      - POSTGRES_PASSWORD=dwpass
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    networks: [streamnet]
+
+  #-----------PRODUCER---------
+  producer:
+    build:
+      context: ./producer
+    container_name: kafka-producer
+    depends_on:
+      - kafka
+    restart: unless-stopped
+    environment:
+      - KAFKA_BOOTSTRAP=kafka:9092
+      - TOPIC=reclamacoes
+      - MESSAGES_PER_SEC=2
+    networks: [streamnet]
+
+
+
+  # ---------- FLINK -----------
+  jobmanager:
+    build: { context: ./flink, dockerfile: Dockerfile }
+    container_name: jobmanager
+    command: jobmanager
+    depends_on: [postgres, minio]
+    ports: ["8081:8081"]
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - FLINK_CLASSPATH=/opt/flink/extra-connectors/*
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        parallelism.default: 2
+        s3.endpoint: http://minio:9000
+        s3.path.style.access: true
+        s3.access.key: minio
+        s3.secret.key: minio12345
+        s3.connection.ssl.enabled: false
+    volumes:
+      - ./app:/app
+      - ./connectors:/opt/flink/extra-connectors     # <-- mantenha AQUI
+      - ./plugins/s3-hadoop:/opt/flink/plugins/s3-fs-hadoop
+    networks: [streamnet]
+
+  taskmanager-1:
+    build: { context: ./flink, dockerfile: Dockerfile }
+    container_name: taskmanager-1
+    command: taskmanager
+    depends_on: [jobmanager]
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - FLINK_CLASSPATH=/opt/flink/extra-connectors/*
+      - |
+        FLINK_PROPERTIES=
+        taskmanager.numberOfTaskSlots: 2
+        s3.endpoint: http://minio:9000
+        s3.path.style.access: true
+        s3.access.key: minio
+        s3.secret.key: minio12345
+        s3.connection.ssl.enabled: false
+    volumes:
+      - ./app:/app
+      - ./connectors:/opt/flink/extra-connectors     # <-- mantenha AQUI
+      - ./plugins/s3-hadoop:/opt/flink/plugins/s3-fs-hadoop
+    networks: [streamnet]
+
+  taskmanager-2:
+    build: { context: ./flink, dockerfile: Dockerfile }
+    container_name: taskmanager-2
+    command: taskmanager
+    depends_on: [jobmanager]
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - FLINK_CLASSPATH=/opt/flink/extra-connectors/*
+      - |
+        FLINK_PROPERTIES=
+        taskmanager.numberOfTaskSlots: 2
+        s3.endpoint: http://minio:9000
+        s3.path.style.access: true
+        s3.access.key: minio
+        s3.secret.key: minio12345
+        s3.connection.ssl.enabled: false
+    volumes:
+      - ./app:/app
+      - ./connectors:/opt/flink/extra-connectors     # <-- mantenha AQUI
+      - ./plugins/s3-hadoop:/opt/flink/plugins/s3-fs-hadoop
+    networks: [streamnet]
+
+  flink-client:
+    build: { context: ./flink, dockerfile: Dockerfile }
+    container_name: flink-client
+    depends_on: [jobmanager, taskmanager-1, taskmanager-2]
+    working_dir: /app
+    entrypoint: ["/bin/bash","-lc","sleep infinity"]
+    environment:
+      - FLINK_CLASSPATH=/opt/flink/extra-connectors/*
+    volumes:
+      - ./app:/app
+      - ./connectors:/opt/flink/extra-connectors     # <-- mantenha AQUI
+      - ./plugins/s3-hadoop:/opt/flink/plugins/s3-fs-hadoop
+    networks: [streamnet]
+
+
+networks:
+  streamnet:
+    driver: bridge
+
+volumes:
+  kafka_data:
+  minio_data:
+  pg_data:
+
