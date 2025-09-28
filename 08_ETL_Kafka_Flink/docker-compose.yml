@@ -94,6 +94,8 @@ services:
       - KAFKA_BOOTSTRAP=kafka:9092
       - TOPIC=reclamacoes
       - MESSAGES_PER_SEC=2
+    volumes:
+      - ./seeds:/data/seeds:ro
     networks: [streamnet]
 
 
@@ -190,4 +192,3 @@ volumes:
   kafka_data:
   minio_data:
   pg_data:
-
