@@ -10,3 +10,7 @@ target/
 dbt_packages/
 *.dbt
 .venv/
+
+# Flink artefacts baixados em tempo de build/execução
+08_ETL_Kafka_Flink/aws-java-sdk-bundle-*.jar
+08_ETL_Kafka_Flink/jars/
